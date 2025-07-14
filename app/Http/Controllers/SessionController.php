@@ -1,66 +1,59 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class SessionController extends Controller
 {
+    // عرض صفحة تسجيل الدخول
     public function create()
     {
         return view('auth.login');
     }
 
+    // تنفيذ عملية تسجيل الدخول
     public function store()
     {
-        // Validate the request data
         $attrs = request()->validate([
             'email' => ['required', 'email'],
-            'password' => ['required'],
+            'password' => ['required']
         ]);
 
-        // Attempt login
         if (!Auth::attempt($attrs)) {
             throw ValidationException::withMessages([
-                // 'email' => 'Your provided credentials could not be verified.'
                 'email' => 'Invalid Email',
-                'password' => 'Invalid Password'
+                'password' => 'Invalid Password',
             ]);
         }
 
-        // Regenerate session token for security
+        // إعادة توليد السيشن
         request()->session()->regenerate();
 
-        // Retrieve the user's role
-        $role = auth()->user()->role->name ?? null;
+        // توجيه المستخدم حسب نوع الدور
+        $role = Auth::user()->role->name;
 
-        // Redirect based on role
-        switch ($role) {
-            case 'Admin':
-                return redirect('/admin/dashboard')->with('greeting', 'Welcome back, Admin!');
-            case 'Student':
-                return redirect('/student/dashboard')->with('greeting', 'Welcome back, Student!');
-            case 'Teacher':
-                return redirect('/teacher/dashboard')->with('greeting', 'Welcome back, Teacher!');
-            default:
-                // Handle if the user doesn't have a role
-                auth()->logout();
-                return redirect('/')->withErrors([
-                    'role' => 'User does not have a valid role.'
-                ]);
+        if ($role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        } elseif ($role === 'teacher') {
+            return redirect()->route('teacher.dashboard');
+        } elseif ($role === 'student') {
+            return redirect()->route('student.dashboard');
+        } else {
+            Auth::logout();
+            abort(403, 'Unknown user role.');
         }
     }
 
+    // تنفيذ تسجيل الخروج
     public function destroy()
     {
-        // logout functionality
-        auth()->logout();
-        // invalidate the user
+        Auth::logout();
+
         request()->session()->invalidate();
-        // regenerte the CSRF token
         request()->session()->regenerateToken();
-        // redirect to the login page
+
         return redirect('/');
     }
 }

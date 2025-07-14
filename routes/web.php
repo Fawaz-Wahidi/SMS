@@ -12,7 +12,6 @@ use App\Http\Controllers\Student\StudentStdController;
 use App\Http\Controllers\Teacher\TeacherMainController;
 use App\Http\Controllers\Teacher\TeacherStudentController;
 use App\Http\Controllers\Teacher\TeacherAnnouncementController;
-
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\StudentRegisterController;
 use App\Http\Middleware\AdminMiddleware;
